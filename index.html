@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة الجواكر - الهاند</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            background-color: #1a6e1a;
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #0d4d0d;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            gap: 20px;
+        }
+
+        .opponents-area {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+
+        .opponent {
+            background-color: #0d4d0d;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            width: 200px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .opponent-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .opponent-cards {
+            margin-bottom: 5px;
+        }
+
+        .opponent-status {
+            font-size: 0.9rem;
+            color: #ffcc00;
+            height: 20px;
+        }
+
+        .game-table {
+            flex-grow: 1;
+            background-color: #0d4d0d;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .played-cards {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 120px;
+            padding: 20px;
+        }
+
+        .current-turn {
+            position: absolute;
+            bottom: 10px;
+            background-color: #1a6e1a;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .player-area {
+            background-color: #0d4d0d;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .player-cards {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            min-height: 120px;
+        }
+
+        .card {
+            width: 80px;
+            height: 120px;
+            background-color: white;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: black;
+            font-weight: bold;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .card.selected {
+            transform: translateY(-20px);
+            box-shadow: 0 0 15px gold;
+        }
+
+        .card.red {
+            color: red;
+        }
+
+        .card.black {
+            color: black;
+        }
+
+        .card.joker {
+            background-color: #f8f8f8;
+            color: #e91e63;
+        }
+
+        .player-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ffc107;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background-color: #ffca28;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .modal {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #0d4d0d;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #ffc107;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border: none;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                width: 60px;
+                height: 90px;
+                font-size: 16px;
+            }
+
+            .opponent {
+                width: 150px;
+                padding: 10px;
+            }
+
+            button {
+                padding: 10px 20px;
+            }
+        }
+
+        /* تأثيرات إضافية */
+        @keyframes cardPlay {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .card-played {
+            animation: cardPlay 0.5s ease-in-out;
+        }
+
+        .winner {
+            color: #4caf50;
+        }
+
+        .disconnected {
+            color: #f44336;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>لعبة الجواكر</h1>
+            <div class="player-info">
+                <span id="player-name">...</span>
+                <span id="player-points">النقاط: 0</span>
+            </div>
+        </header>
+
+        <div class="game-container">
+            <div class="opponents-area">
+                <div class="opponent" id="opponent1">
+                    <div class="opponent-name">الخصم 1</div>
+                    <div class="opponent-cards">5 بطاقات</div>
+                    <div class="opponent-status" id="opponent1-status"></div>
+                </div>
+                <div class="opponent" id="opponent2">
+                    <div class="opponent-name">الخصم 2</div>
+                    <div class="opponent-cards">5 بطاقات</div>
+                    <div class="opponent-status" id="opponent2-status"></div>
+                </div>
+            </div>
+
+            <div class="game-table">
+                <div class="played-cards" id="played-cards"></div>
+                <div class="current-turn" id="current-turn">انتظار اللاعبين...</div>
+            </div>
+
+            <div class="player-area">
+                <div class="player-cards" id="player-cards"></div>
+                <div class="player-actions">
+                    <button id="play-card" disabled>لعب البطاقة</button>
+                    <button id="take-cards">أخذ البطاقات</button>
+                    <button id="start-game" style="display:none;">بدء اللعبة</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-modals">
+            <div class="modal" id="join-modal">
+                <div class="modal-content">
+                    <h2>انضم إلى اللعبة</h2>
+                    <input type="text" id="username-input" placeholder="اسم اللاعب" maxlength="15">
+                    <button id="join-game">انضم</button>
+                </div>
+            </div>
+
+            <div class="modal" id="game-over-modal" style="display:none;">
+                <div class="modal-content">
+                    <h2 id="game-result">الفائز هو: ...</h2>
+                    <button id="play-again">العب مرة أخرى</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // تهيئة Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js";
+        import {
+            getFirestore, collection, doc, setDoc, updateDoc,
+            getDoc, onSnapshot, arrayUnion, arrayRemove, serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
+        import {
+            getAuth, signInAnonymously
+        } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js";
+
+        // تكوين Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7HRSOzV6vl1HaTRFYhUZtoqVs2jvBz50",
+            authDomain: "hand-418c5.firebaseapp.com",
+            projectId: "hand-418c5",
+            storageBucket: "hand-418c5.firebasestorage.app",
+            messagingSenderId: "1061792965996",
+            appId: "1:1061792965996:web:f7ea55a94adc22bd02ff49"
+        };
+
+        // تهيئة Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // متغيرات اللعبة
+        let playerId;
+        let playerName;
+        let gameId;
+        let gameRef;
+        let unsubscribeGame;
+        let selectedCardIndex = -1;
+
+        // عناصر DOM
+        const elements = {
+            joinModal: document.getElementById('join-modal'),
+            usernameInput: document.getElementById('username-input'),
+            joinButton: document.getElementById('join-game'),
+            playerName: document.getElementById('player-name'),
+            playerPoints: document.getElementById('player-points'),
+            playerCards: document.getElementById('player-cards'),
+            playedCards: document.getElementById('played-cards'),
+            currentTurn: document.getElementById('current-turn'),
+            playCardButton: document.getElementById('play-card'),
+            takeCardsButton: document.getElementById('take-cards'),
+            startGameButton: document.getElementById('start-game'),
+            opponent1: document.getElementById('opponent1'),
+            opponent2: document.getElementById('opponent2'),
+            opponent1Status: document.getElementById('opponent1-status'),
+            opponent2Status: document.getElementById('opponent2-status'),
+            gameOverModal: document.getElementById('game-over-modal'),
+            gameResult: document.getElementById('game-result'),
+            playAgainButton: document.getElementById('play-again')
+        };
+
+        // تهيئة اللعبة
+        document.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            setupEventListeners();
+        });
+
+        function initGame() {
+            elements.joinModal.style.display = 'flex';
+            elements.gameOverModal.style.display = 'none';
+            elements.playCardButton.disabled = true;
+            elements.startGameButton.style.display = 'none';
+        }
+
+        function setupEventListeners() {
+            elements.joinButton.addEventListener('click', joinGame);
+            elements.playCardButton.addEventListener('click', playCard);
+            elements.takeCardsButton.addEventListener('click', takeCards);
+            elements.startGameButton.addEventListener('click', startGame);
+            elements.playAgainButton.addEventListener('click', playAgain);
+        }
+
+        // دالة تسجيل الدخول المجهول
+        async function anonymousLogin() {
+            try {
+                const result = await signInAnonymously(auth);
+                return result.user.uid;
+            } catch (error) {
+                console.error("Error in anonymous login:", error);
+                throw error;
+            }
+        }
+
+        // انضمام للعبة
+        async function joinGame() {
+            playerName = elements.usernameInput.value.trim();
+
+            if (!playerName || playerName.length < 2) {
+                alert('الرجاء إدخال اسم صالح (حرفين على الأقل)');
+                return;
+            }
+
+            try {
+                playerId = await anonymousLogin();
+                elements.playerName.textContent = playerName;
+                elements.joinModal.style.display = 'none';
+
+                await findOrCreateGame();
+            } catch (error) {
+                console.error("Error joining game:", error);
+                alert('حدث خطأ أثناء الانضمام للعبة. الرجاء المحاولة مرة أخرى');
+            }
+        }
+
+        // البحث عن لعبة أو إنشاء جديدة
+        async function findOrCreateGame() {
+            const gamesRef = collection(db, 'games');
+            const q = query(gamesRef, where('status', '==', 'waiting'));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                // الانضمام إلى لعبة موجودة
+                gameId = querySnapshot.docs[0].id;
+                gameRef = doc(db, 'games', gameId);
+
+                await updateDoc(gameRef, {
+                    players: arrayUnion({
+                        id: playerId,
+                        name: playerName,
+                        cards: [],
+                        points: 0,
+                        status: 'connected'
+                    })
+                });
+
+                setupGameListener();
+            } else {
+                // إنشاء لعبة جديدة
+                gameId = doc(collection(db, 'games')).id;
+                gameRef = doc(db, 'games', gameId);
+
+                await setDoc(gameRef, {
+                    id: gameId,
+                    players: [{
+                        id: playerId,
+                        name: playerName,
+                        cards: [],
+                        points: 0,
+                        status: 'connected'
+                    }],
+                    currentPlayer: null,
+                    currentPlay: null,
+                    deck: createDeck(),
+                    direction: 1,
+                    status: 'waiting',
+                    round: 0,
+                    createdAt: serverTimestamp(),
+                    maxPlayers: 3
+                });
+
+                setupGameListener();
+                elements.startGameButton.style.display = 'block';
+            }
+        }
+
+        // بدء اللعبة
+        async function startGame() {
+            try {
+                // توزيع البطاقات
+                const deck = shuffleDeck(createDeck());
+                const players = [];
+                const cardsPerPlayer = 5;
+
+                const gameSnapshot = await getDoc(gameRef);
+                const gameData = gameSnapshot.data();
+                const currentPlayers = gameData.players;
+
+                // توزيع البطاقات على اللاعبين
+                currentPlayers.forEach(player => {
+                    players.push({
+                        ...player,
+                        cards: deck.splice(0, cardsPerPlayer)
+                    });
+                });
+
+                // اختيار اللاعب الأول عشوائياً
+                const firstPlayerIndex = Math.floor(Math.random() * players.length);
+                const firstPlayerId = players[firstPlayerIndex].id;
+
+                await updateDoc(gameRef, {
+                    status: 'playing',
+                    players: players,
+                    deck: deck,
+                    currentPlayer: firstPlayerId,
+                    currentPlay: null,
+                    round: gameData.round + 1
+                });
+
+                elements.startGameButton.style.display = 'none';
+            } catch (error) {
+                console.error("Error starting game:", error);
+                alert('حدث خطأ أثناء بدء اللعبة');
+            }
+        }
+
+        // الاستماع لتحديثات اللعبة
+        function setupGameListener() {
+            unsubscribeGame = onSnapshot(gameRef, async (doc) => {
+                const gameData = doc.data();
+                if (!gameData) return;
+
+                // تحديث حالة الاتصال للاعب الحالي
+                await updatePlayerStatus();
+
+                if (gameData.status === 'playing') {
+                    updateGameUI(gameData);
+                } else if (gameData.status === 'ended') {
+                    showGameResult(gameData.winner);
+                }
+            });
+        }
+
+        // تحديث حالة الاتصال للاعب
+        async function updatePlayerStatus() {
+            await updateDoc(gameRef, {
+                players: arrayRemove({ id: playerId })
+            });
+
+            await updateDoc(gameRef, {
+                players: arrayUnion({
+                    id: playerId,
+                    name: playerName,
+                    status: 'connected',
+                    lastActive: serverTimestamp()
+                })
+            });
+        }
+
+        // تحديث واجهة اللعبة
+        function updateGameUI(gameData) {
+            const currentPlayer = gameData.players.find(p => p.id === playerId);
+            const opponents = gameData.players.filter(p => p.id !== playerId);
+
+            // تحديث معلومات اللاعب
+            elements.playerPoints.textContent = `النقاط: ${currentPlayer.points || 0}`;
+            renderPlayerCards(currentPlayer.cards);
+
+            // تحديث معلومات الخصوم
+            updateOpponentsInfo(opponents, gameData.currentPlayer);
+
+            // تحديث البطاقات المعلبة
+            renderPlayedCards(gameData.currentPlay?.cards || []);
+
+            // تحديث دور اللاعب
+            updateCurrentTurn(gameData.currentPlayer, gameData.players);
+
+            // التحقق من نهاية اللعبة
+            checkGameEnd(currentPlayer, gameData);
+        }
+
+        // عرض بطاقات اللاعب
+        function renderPlayerCards(cards) {
+            elements.playerCards.innerHTML = '';
+
+            cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${getCardColor(card)} ${card.value === 'JOKER' ? 'joker' : ''}`;
+                cardElement.textContent = getCardSymbol(card);
+                cardElement.dataset.index = index;
+
+                if (index === selectedCardIndex) {
+                    cardElement.classList.add('selected');
+                }
+
+                cardElement.addEventListener('click', () => selectCard(index));
+                elements.playerCards.appendChild(cardElement);
+            });
+        }
+
+        // اختيار بطاقة
+        function selectCard(index) {
+            const cards = document.querySelectorAll('#player-cards .card');
+
+            if (selectedCardIndex !== -1) {
+                cards[selectedCardIndex].classList.remove('selected');
+            }
+
+            if (selectedCardIndex === index) {
+                selectedCardIndex = -1;
+                elements.playCardButton.disabled = true;
+            } else {
+                selectedCardIndex = index;
+                cards[index].classList.add('selected');
+                elements.playCardButton.disabled = false;
+            }
+        }
+
+        // لعب بطاقة
+        async function playCard() {
+            if (selectedCardIndex === -1 || !gameRef) return;
+
+            try {
+                const gameSnapshot = await getDoc(gameRef);
+                if (!gameSnapshot.exists()) return;
+
+                const game = gameSnapshot.data();
+                const player = game.players.find(p => p.id === playerId);
+
+                if (game.currentPlayer !== playerId) {
+                    alert('ليس دورك بعد!');
+                    return;
+                }
+
+                const playedCard = player.cards[selectedCardIndex];
+
+                // التحقق من صحة اللعب
+                if (game.currentPlay && !isValidPlay(playedCard, game.currentPlay.cards[0])) {
+                    alert('لا يمكن لعب هذه البطاقة!');
+                    return;
+                }
+
+                // تحديث حالة اللعبة
+                const updatedPlayers = game.players.map(p => {
+                    if (p.id === playerId) {
+                        const newCards = [...p.cards];
+                        newCards.splice(selectedCardIndex, 1);
+                        return { ...p, cards: newCards };
+                    }
+                    return p;
+                });
+
+                // تحديد اللاعب التالي
+                const currentIndex = game.players.findIndex(p => p.id === game.currentPlayer);
+                const nextIndex = (currentIndex + game.direction + game.players.length) % game.players.length;
+                const nextPlayerId = game.players[nextIndex].id;
+
+                // معالجة البطاقات الخاصة (الجوكر)
+                let newDirection = game.direction;
+                if (playedCard.value === 'JOKER') {
+                    newDirection *= -1; // عكس اتجاه اللعب
+                }
+
+                await updateDoc(gameRef, {
+                    players: updatedPlayers,
+                    currentPlay: {
+                        playerId,
+                        cards: [playedCard]
+                    },
+                    currentPlayer: nextPlayerId,
+                    direction: newDirection
+                });
+
+                selectedCardIndex = -1;
+                elements.playCardButton.disabled = true;
+
+                // إضافة تأثير للبطاقة الملعوبة
+                const playedCardElement = document.createElement('div');
+                playedCardElement.className = `card ${getCardColor(playedCard)} card-played`;
+                playedCardElement.textContent = getCardSymbol(playedCard);
+                elements.playedCards.appendChild(playedCardElement);
+
+            } catch (error) {
+                console.error("Error playing card:", error);
+                alert('حدث خطأ أثناء لعب البطاقة');
+            }
+        }
+
+        // أخذ بطاقات
+        async function takeCards() {
+            if (!gameRef) return;
+
+            try {
+                const gameSnapshot = await getDoc(gameRef);
+                if (!gameSnapshot.exists()) return;
+
+                const game = gameSnapshot.data();
+
+                if (game.currentPlayer !== playerId) {
+                    alert('ليس دورك بعد!');
+                    return;
+                }
+
+                const player = game.players.find(p => p.id === playerId);
+                const newCards = game.deck.splice(0, 2); // أخذ بطاقتين
+
+                const updatedPlayers = game.players.map(p => {
+                    if (p.id === playerId) {
+                        return {
+                            ...p,
+                            cards: [...p.cards, ...newCards]
+                        };
+                    }
+                    return p;
+                });
+
+                // تحديد اللاعب التالي
+                const currentIndex = game.players.findIndex(p => p.id === game.currentPlayer);
+                const nextIndex = (currentIndex + game.direction + game.players.length) % game.players.length;
+                const nextPlayerId = game.players[nextIndex].id;
+
+                await updateDoc(gameRef, {
+                    players: updatedPlayers,
+                    deck: game.deck,
+                    currentPlayer: nextPlayerId
+                });
+
+            } catch (error) {
+                console.error("Error taking cards:", error);
+                alert('حدث خطأ أثناء أخذ البطاقات');
+            }
+        }
+
+        // تحديث معلومات الخصوم
+        function updateOpponentsInfo(opponents, currentPlayerId) {
+            opponents.forEach((opponent, index) => {
+                const opponentElement = index === 0 ? elements.opponent1 : elements.opponent2;
+                const statusElement = index === 0 ? elements.opponent1Status : elements.opponent2Status;
+
+                opponentElement.querySelector('.opponent-name').textContent = opponent.name;
+                opponentElement.querySelector('.opponent-cards').textContent = `${opponent.cards?.length || 0} بطاقات`;
+
+                // تحديث حالة الخصم
+                if (opponent.status === 'disconnected') {
+                    statusElement.textContent = 'غير متصل';
+                    statusElement.classList.add('disconnected');
+                    statusElement.classList.remove('winner');
+                } else if (opponent.id === currentPlayerId) {
+                    statusElement.textContent = 'يلعب الآن';
+                    statusElement.classList.remove('disconnected', 'winner');
+                } else {
+                    statusElement.textContent = 'في الانتظار';
+                    statusElement.classList.remove('disconnected', 'winner');
+                }
+            });
+        }
+
+        // عرض البطاقات المعلبة
+        function renderPlayedCards(cards) {
+            elements.playedCards.innerHTML = '';
+
+            cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${getCardColor(card)} ${card.value === 'JOKER' ? 'joker' : ''}`;
+                cardElement.textContent = getCardSymbol(card);
+                elements.playedCards.appendChild(cardElement);
+            });
+        }
+
+        // تحديث دور اللاعب
+        function updateCurrentTurn(currentPlayerId, players) {
+            if (currentPlayerId === playerId) {
+                elements.currentTurn.textContent = 'دورك!';
+                elements.currentTurn.style.color = '#4caf50';
+            } else {
+                const currentPlayer = players.find(p => p.id === currentPlayerId);
+                elements.currentTurn.textContent = `دور: ${currentPlayer?.name || '...'}`;
+                elements.currentTurn.style.color = '#ffffff';
+            }
+        }
+
+        // التحقق من نهاية اللعبة
+        function checkGameEnd(player, gameData) {
+            if (player.cards.length === 0) {
+                endGame(player.id, gameData.players);
+            }
+        }
+
+        // إنهاء اللعبة
+        async function endGame(winnerId, players) {
+            try {
+                // تحديث نقاط الفائز
+                const updatedPlayers = players.map(player => {
+                    if (player.id === winnerId) {
+                        return {
+                            ...player,
+                            points: (player.points || 0) + 1
+                        };
+                    }
+                    return player;
+                });
+
+                await updateDoc(gameRef, {
+                    status: 'ended',
+                    players: updatedPlayers,
+                    winner: winnerId,
+                    endedAt: serverTimestamp()
+                });
+
+            } catch (error) {
+                console.error("Error ending game:", error);
+            }
+        }
+
+        // عرض نتيجة اللعبة
+        function showGameResult(winnerId) {
+            if (winnerId === playerId) {
+                elements.gameResult.textContent = 'مبروك! لقد فزت!';
+                elements.gameResult.classList.add('winner');
+            } else {
+                const winnerPlayer = gameData.players.find(p => p.id === winnerId);
+                elements.gameResult.textContent = `الفائز هو: ${winnerPlayer?.name || '...'}`;
+                elements.gameResult.classList.remove('winner');
+            }
+
+            elements.gameOverModal.style.display = 'flex';
+        }
+
+        // اللعب مرة أخرى
+        async function playAgain() {
+            try {
+                elements.gameOverModal.style.display = 'none';
+
+                // إعادة تعيين اللعبة
+                await updateDoc(gameRef, {
+                    status: 'waiting',
+                    players: arrayRemove({ id: playerId })
+                });
+
+                await updateDoc(gameRef, {
+                    players: arrayUnion({
+                        id: playerId,
+                        name: playerName,
+                        cards: [],
+                        points: 0,
+                        status: 'connected'
+                    }),
+                    currentPlayer: null,
+                    currentPlay: null,
+                    deck: createDeck(),
+                    direction: 1,
+                    winner: null
+                });
+
+                selectedCardIndex = -1;
+                elements.playCardButton.disabled = true;
+
+            } catch (error) {
+                console.error("Error playing again:", error);
+            }
+        }
+
+        // مساعد: التحقق من صحة اللعب
+        function isValidPlay(card, lastCard) {
+            if (!lastCard) return true;
+            if (card.value === 'JOKER') return true;
+            return card.value === lastCard.value || card.suit === lastCard.suit;
+        }
+
+        // مساعد: الحصول على لون البطاقة
+        function getCardColor(card) {
+            return ['♥', '♦'].includes(card.suit) ? 'red' : 'black';
+        }
+
+        // مساعد: الحصول على رمز البطاقة
+        function getCardSymbol(card) {
+            const valueMap = {
+                '1': 'A', '11': 'J', '12': 'Q', '13': 'K'
+            };
+            const suitMap = {
+                '♥': '♥', '♦': '♦', '♣': '♣', '♠': '♠', '★': '★'
+            };
+
+            const displayValue = valueMap[card.value] || card.value;
+            return `${displayValue}${suitMap[card.suit]}`;
+        }
+
+        // مساعد: إنشاء مجموعة بطاقات
+        function createDeck() {
+            const suits = ['♥', '♦', '♣', '♠'];
+            const values = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
+            const deck = [];
+
+            suits.forEach(suit => {
+                values.forEach(value => {
+                    deck.push({ suit, value });
+                });
+            });
+
+            // إضافة الجوكر
+            deck.push({ suit: '★', value: 'JOKER' });
+            deck.push({ suit: '★', value: 'JOKER' });
+
+            return shuffleDeck(deck);
+        }
+
+        // مساعد: خلط البطاقات
+        function shuffleDeck(deck) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        }
+
+        // إدارة اتصال اللاعب
+        window.addEventListener('beforeunload', async () => {
+            if (gameRef && playerId) {
+                try {
+                    await updateDoc(gameRef, {
+                        players: arrayRemove({ id: playerId })
+                    });
+
+                    await updateDoc(gameRef, {
+                        players: arrayUnion({
+                            id: playerId,
+                            name: playerName,
+                            status: 'disconnected',
+                            lastActive: serverTimestamp()
+                        })
+                    });
+                } catch (error) {
+                    console.error("Error updating player status on exit:", error);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
